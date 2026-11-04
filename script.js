@@ -1,36 +1,37 @@
 
 class Parquimetro {
     constructor(valor) {
-        // Converte para centavos para evitar erros com decimais
+        // Converte o valor para centavos
         this.valor = Math.round(valor * 100);
     }
 
-    calcularTempo() {
+    // Determina a faixa de estacionamento
+    determinarFaixa() {
         if (this.valor < 100) {
-            return 0;
+            return { tempo: 0, valorCobrado: 0 };
         } else if (this.valor < 175) {
-            return 30;
+            return { tempo: 30, valorCobrado: 100 };
         } else if (this.valor < 300) {
-            return 60;
+            return { tempo: 60, valorCobrado: 175 };
         } else {
-            return 120;
+            return { tempo: 120, valorCobrado: 300 };
         }
     }
 
-    calcularTroco() {
-        let valorCobrado = 0;
+    // Calcula o tempo de permanência
+    calcularTempo() {
+        return this.determinarFaixa().tempo;
+    }
 
-        if (this.valor < 100) {
+    // Calcula o troco
+    calcularTroco() {
+        const faixa = this.determinarFaixa();
+
+        if (faixa.tempo === 0) {
             return 0;
-        } else if (this.valor < 175) {
-            valorCobrado = 100;
-        } else if (this.valor < 300) {
-            valorCobrado = 175;
-        } else {
-            valorCobrado = 300;
         }
 
-        return (this.valor - valorCobrado) / 100;
+        return (this.valor - faixa.valorCobrado) / 100;
     }
 }
 
@@ -42,7 +43,22 @@ const resultado = document.getElementById("resultado");
 formulario.addEventListener("submit", function(event) {
     event.preventDefault();
 
-    const valor = Number(document.getElementById("valor").value);
+    const campoValor = document.getElementById("valor");
+    const valorTexto = campoValor.value.trim();
+    const valor = Number(valorTexto);
+
+    // Valida o valor informado
+    if (valorTexto === "" || !Number.isFinite(valor) || valor < 0) {
+        resultado.className = "resultado erro";
+        resultado.textContent = "Digite um valor válido.";
+        return;
+    }
+
+    if (valor < 1) {
+        resultado.className = "resultado erro";
+        resultado.textContent = "Valor insuficiente! Mínimo de R$ 1,00.";
+        return;
+    }
 
     // Cria um objeto da classe Parquimetro
     const parquimetro = new Parquimetro(valor);
@@ -50,12 +66,7 @@ formulario.addEventListener("submit", function(event) {
     const tempo = parquimetro.calcularTempo();
     const troco = parquimetro.calcularTroco();
 
-    if (!Number.isFinite(valor) || valor < 1) {
-        resultado.className = "resultado erro";
-        resultado.innerHTML = "Valor insuficiente! Mínimo de R$ 1,00.";
-        return;
-    }
-
+    // Exibe o resultado
     resultado.className = "resultado sucesso";
 
     resultado.innerHTML = `
